@@ -1,0 +1,61 @@
+---
+- name: Check if Jito-Solana binary exists
+  ansible.builtin.stat:
+    path: "{{ solana_install_dir }}/solana"
+  register: solana_binary
+  tags: [jito_solana_cli.verify]
+
+- name: Fail if Jito-Solana binary is missing
+  ansible.builtin.fail:
+    msg: "Jito-Solana binary not found at {{ solana_install_dir }}/solana!"
+  when: not solana_binary.stat.exists
+  tags: [jito_solana_cli.verify]
+
+- name: Get Jito-Solana CLI version
+  ansible.builtin.command: "{{ solana_install_dir }}/solana --version"
+  register: jito_cli_version
+  changed_when: false
+  tags: [jito_solana_cli.verify]
+
+- name: Verify Jito-Solana CLI version and client
+  ansible.builtin.assert:
+    that:
+      - jito_version in jito_cli_version.stdout
+      - "'client:JitoLabs' in jito_cli_version.stdout"
+    fail_msg: >
+      Jito-Solana CLI verification failed:
+      - Expected version: {{ jito_version }}
+      - Expected client: JitoLabs
+      - Actual output: {{ jito_cli_version.stdout }}
+  tags: [jito_solana_cli.verify]
+
+- name: Test Jito-Solana CLI basic functionality
+  ansible.builtin.command: "{{ solana_install_dir }}/solana --help"
+  register: jito_cli_help
+  changed_when: false
+  tags: [jito_solana_cli.verify]
+
+- name: Verify CLI help output
+  ansible.builtin.assert:
+    that:
+      - jito_cli_help.rc == 0
+      - "'Usage:' in jito_cli_help.stdout or 'Commands:' in jito_cli_help.stdout"
+    fail_msg: >
+      Jito-Solana CLI help command failed:
+      - Return code: {{ jito_cli_help.rc }}
+      - Output: {{ jito_cli_help.stdout }}
+  tags: [jito_solana_cli.verify]
+
+- name: Summary - Jito-Solana CLI verification complete
+  ansible.builtin.debug:
+    msg: |
+      Jito-Solana CLI verification complete:
+
+      Installation Summary:
+      - Binary exists: {{ solana_binary.stat.exists }}
+      - Binary path: {{ solana_install_dir }}/solana
+      - Version: {{ jito_cli_version.stdout }}
+      - Help command: {{ jito_cli_help.rc == 0 | ternary('PASS', 'FAIL') }}
+
+      Jito-Solana CLI is ready for use!
+  tags: [jito_solana_cli.verify]

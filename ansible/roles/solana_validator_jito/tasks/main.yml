@@ -17,9 +17,12 @@
   import_tasks: jito_relayer_cohosted/main.yml
   when: jito_relayer_type == 'co-hosted'
 
-# Jito client installation and configuration
-- name: Setup Jito client
-  import_tasks: jito_client/main.yml
+# Jito validator configuration
+- name: Configure Jito-Solana validator
+  import_tasks: configure_validator.yml
+
+- name: Verify Jito-Solana validator
+  import_tasks: verify_validator.yml
 
 - name: Print Summary
   import_tasks: summary.yml

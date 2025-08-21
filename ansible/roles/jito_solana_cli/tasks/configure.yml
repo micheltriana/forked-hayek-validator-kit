@@ -1,0 +1,5 @@
+---
+- name: Configure Jito-Solana CLI
+  ansible.builtin.debug:
+    msg: "Jito-Solana CLI configuration completed - CLI is ready for use"
+  tags: [jito_solana_cli, config]

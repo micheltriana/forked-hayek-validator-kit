@@ -1,0 +1,23 @@
+---
+# Jito-Solana CLI configuration
+jito_version: "2.2.16"
+jito_solana_cli_bin_path: "$HOME/.local/share/solana/install/active_release/bin"
+
+# Installation method
+build_from_source: false
+use_official_repo: false
+
+# Repository URLs
+jito_official_repo: "https://github.com/jito-labs/jito-solana"
+jito_forked_repo: "https://github.com/jito-labs/jito-solana"
+
+# User and directory configuration
+solana_user: "{{ lookup('ansible.builtin.pipe', 'id -u sol > /dev/null 2>&1 && echo sol || echo ' + ansible_user_id) }}"
+solana_user_dir: "/home/{{ solana_user }}"
+solana_installed_releases_dir: "{{ solana_user_dir }}/.local/share/solana/install/releases"
+solana_install_dir: "{{ solana_user_dir }}/.local/share/solana/install/active_release/bin"
+build_dir: "{{ solana_user_dir }}/build"
+jito_build_dir: "{{ build_dir }}/jito-solana"
+
+# Architecture detection
+host_arch: "{{ ansible_architecture | regex_replace('x86_64', 'x86_64') | regex_replace('aarch64', 'aarch64') }}"

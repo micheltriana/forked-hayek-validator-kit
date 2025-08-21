@@ -1,0 +1,19 @@
+---
+- name: Precheck environment
+  import_tasks: precheck.yml
+  tags: [jito_solana_cli, precheck]
+
+- name: Install Jito-Solana CLI
+  import_tasks: install.yml
+  when: not jito_solana_cli_already_installed
+  tags: [jito_solana_cli, install]
+
+- name: Configure the Jito-Solana CLI post installation
+  import_tasks: configure.yml
+  when: not jito_solana_cli_already_installed
+  tags: [jito_solana_cli, config]
+
+- name: Verify Jito-Solana CLI installation is correct
+  import_tasks: verify.yml
+  when: not jito_solana_cli_already_installed
+  tags: [jito_solana_cli, verify]
