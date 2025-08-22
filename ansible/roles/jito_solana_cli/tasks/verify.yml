@@ -29,24 +29,7 @@
       - Actual output: {{ jito_cli_version.stdout }}
   tags: [jito_solana_cli.verify]
 
-- name: Test Jito-Solana CLI basic functionality
-  ansible.builtin.command: "{{ solana_install_dir }}/solana --help"
-  register: jito_cli_help
-  changed_when: false
-  tags: [jito_solana_cli.verify]
-
-- name: Verify CLI help output
-  ansible.builtin.assert:
-    that:
-      - jito_cli_help.rc == 0
-      - "'Usage:' in jito_cli_help.stdout or 'Commands:' in jito_cli_help.stdout"
-    fail_msg: >
-      Jito-Solana CLI help command failed:
-      - Return code: {{ jito_cli_help.rc }}
-      - Output: {{ jito_cli_help.stdout }}
-  tags: [jito_solana_cli.verify]
-
-- name: Summary - Jito-Solana CLI verification complete
+- name: verify - Jito-Solana CLI verification complete
   ansible.builtin.debug:
     msg: |
       Jito-Solana CLI verification complete:

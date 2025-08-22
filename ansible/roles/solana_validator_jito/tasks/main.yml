@@ -17,12 +17,36 @@
   import_tasks: jito_relayer_cohosted/main.yml
   when: jito_relayer_type == 'co-hosted'
 
-# Jito validator configuration
-- name: Configure Jito-Solana validator
-  import_tasks: configure_validator.yml
+- name: Jito validator configuration
+  block:
+    - name: Configure Jito-Solana validator
+      ansible.builtin.debug:
+        msg: "Starting Jito-Solana validator configuration"
+
+    - name: Set validator_keyset_name default if not defined
+      ansible.builtin.set_fact:
+        validator_keyset_name: "{{ validator_name }}"
+      when: validator_keyset_name is not defined
+
+    - name: Install validator keyset using shared task
+      ansible.builtin.import_tasks: ../solana_validator_shared/tasks/install_validator_keyset.yml
+
+    - name: Prepare the startup scripts for the validator
+      ansible.builtin.import_tasks: configure/prep_startup.yml
+
+    - name: Import log rotation configuration
+      ansible.builtin.import_tasks: configure/config_logrotate.yml
+
+    - name: Setup the watchdog service to start and monitor the validator using the startup script
+      ansible.builtin.import_tasks: configure/config_watchdog.yml
+
+    - name: Configuration complete
+      ansible.builtin.debug:
+        msg: "Jito-Solana validator configuration completed successfully"
+  tags: [solana_validator_jito, configure]
 
 - name: Verify Jito-Solana validator
-  import_tasks: verify_validator.yml
+  import_tasks: verify.yml
 
 - name: Print Summary
   import_tasks: summary.yml

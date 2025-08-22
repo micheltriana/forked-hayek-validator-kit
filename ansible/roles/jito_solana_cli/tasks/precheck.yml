@@ -14,54 +14,43 @@
       - solana_user_dir must be defined
       - solana_user must be defined
 
-# Check if the desired version of jito-solana CLI is already installed
-- name: Check if Jito-Solana binary exists
-  ansible.builtin.stat:
-    path: "{{ solana_install_dir }}/solana"
-  register: solana_binary
-  tags: [jito_solana_cli.precheck]
+- name: Check if the desired version of jito client is already installed
+  block:
+    - name: Check if Jito-Solana binary exists
+      ansible.builtin.stat:
+        path: "{{ solana_install_dir }}/solana"
+      register: solana_binary
+      tags: [jito_client.precheck]
 
-- name: Precheck - Get installed Jito-Solana version
-  ansible.builtin.command: "{{ solana_install_dir }}/solana --version"
-  register: installed_version
-  changed_when: false
-  failed_when: false
-  when: solana_binary.stat.exists
-  tags: [jito_solana_cli.precheck]
+    - name: Precheck - Get installed Jito-Solana version
+      ansible.builtin.command: "{{ solana_install_dir }}/agave-validator --version"
+      register: installed_version
+      changed_when: false
+      failed_when: false
+      when: solana_binary.stat.exists
+      tags: [jito_client.precheck]
 
-- name: Precheck - Extract installed version number
-  ansible.builtin.set_fact:
-    installed_jito_version: "{{ installed_version.stdout | regex_search('solana-cli ([0-9.]+)', '\\1') | first }}"
-  when: solana_binary.stat.exists and installed_version.stdout is defined
-  tags: [jito_solana_cli.precheck]
+    - name: Precheck - Extract installed version number
+      ansible.builtin.set_fact:
+        installed_jito_version: "{{ installed_version.stdout | regex_search('agave-validator ([0-9.]+)', '\\1') | first }}"
+      when: solana_binary.stat.exists and installed_version.stdout is defined
+      tags: [jito_client.precheck]
 
-# Take into account client as well as version number
-# solana-cli 2.2.14 (src:e2b57760; feat:798020478, client:Agave)
-# solana-cli 2.2.16 (src:90240211; feat:3073396398, client:JitoLabs)
-# Matching both we ensure jito client installation is needed or not
-- name: Precheck - Extract installed client identifier
-  ansible.builtin.set_fact:
-    installed_jito_client: "{{ installed_version.stdout | regex_search('client:([A-Za-z0-9]+)', '\\1') | first }}"
-  when: solana_binary.stat.exists and installed_version.stdout is defined
-  tags: [jito_solana_cli.precheck]
+    # Take into account client as well as version number
+    # agave-validator 2.2.14 (src:e2b57760; feat:798020478, client:Agave)
+    # agave-validator 2.2.16 (src:90240211; feat:3073396398, client:JitoLabs)
+    # Matching both we ensure jito client installation is needed or not
+    - name: Precheck - Extract installed client identifier
+      ansible.builtin.set_fact:
+        installed_jito_client: "{{ installed_version.stdout | regex_search('client:([A-Za-z0-9]+)', '\\1') | first }}"
+      when: solana_binary.stat.exists and installed_version.stdout is defined
+      tags: [jito_client.precheck]
 
-- name: Precheck - Set fact for Jito-Solana installation needed
-  ansible.builtin.set_fact:
-    jito_solana_cli_already_installed: >-
-      {{ solana_binary.stat.exists and
-         installed_jito_version is defined and
-         installed_jito_version == jito_version and
-         installed_jito_client == 'JitoLabs' }}
-  tags: [jito_solana_cli.precheck]
-
-- name: Debug installation status
-  ansible.builtin.debug:
-    msg: |
-      Jito-Solana CLI Installation Status:
-      - Binary exists: {{ solana_binary.stat.exists }}
-      - Installed version: {{ installed_jito_version | default('not installed') }}
-      - Expected version: {{ jito_version }}
-      - Installed client: {{ installed_jito_client | default('not installed') }}
-      - Expected client: JitoLabs
-      - Already installed: {{ jito_solana_cli_already_installed }}
-  tags: [jito_solana_cli.precheck]
+    - name: Precheck - Set fact for Jito-Solana installation needed
+      ansible.builtin.set_fact:
+        jito_installation_needed: >-
+          {{ not solana_binary.stat.exists or
+             not installed_jito_version is defined or
+             installed_jito_version != jito_version or
+             installed_jito_client != 'JitoLabs' }}
+      tags: [jito_client.precheck]
