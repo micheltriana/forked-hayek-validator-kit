@@ -15,6 +15,7 @@
 
 - name: Config - Refresh shell environment
   ansible.builtin.shell: |
+    . "$HOME/.zshrc"
     . "$HOME/.bashrc"
     echo $PATH
   register: cli_shell_env_path
